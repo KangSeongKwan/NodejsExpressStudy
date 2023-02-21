@@ -1,4 +1,5 @@
 // Express 모듈 가져오는 작업
+const { request } = require('express');
 const express = require('express');
 const app = express();
 
@@ -12,6 +13,11 @@ app.get('/', function(req, res) {
 
 app.get('/page', function(req, res) {
   return res.send('/page')
+});
+
+app.get('/page:pageId', function(req, res) {
+  var title = req.params.pageId;
+  return res.send(title);
 });
 
 app.listen(3000, () => console.log('Example app listening of port 3000'));
