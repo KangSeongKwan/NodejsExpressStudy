@@ -11,6 +11,8 @@ var bodyParser = require('body-parser');
 // compression 미들웨어를 이용해 웹에서 송수신되는 데이터를 압축한다.(보통은 gzip방식)
 var compression = require('compression');
 
+// 정적인 파일을 서비스하고자 할 때 static 미들웨어 사용
+app.use(express.static('public'));
 // bodyParser 미들웨어를 가져오는 표현식
 app.use(bodyParser.urlencoded({extended : true}));
 // compression 미들웨어 가져오는 표현식
@@ -35,36 +37,45 @@ app.get('/', function(request, response) {
   var description = 'Hello, Node.js';
   var list = template.list(request.list);
   var html = template.HTML(title, list, `<h2>${title}</h2>
-  <p>${description}</p>`, `
+  <p>${description}</p>
+  <img src="/images/hello.jpg" style="width:300px; display:block margin-top:10px;">
+  `, `
   <a href="/create">Create</a>`);
   response.send(html);
 });
 
 // :pageId 부분은 /page 아래에 인수를 주면 그 값을 request.params에 저장함.
-app.get('/page/:pageId', function(request, response) {
+app.get('/page/:pageId', function(request, response, next) {
   // 정확하게는 request.params에는 /page/아래의 모든 :변수명 값을 저장함
   var filterId = path.parse(request.params.pageId).base;
   var list = template.list(request.list);
   fs.readFile(`./data/${filterId}`, 'utf-8', function(err, description){
-    var title = request.params.pageId;
-    var sanitizedTitle = sanitizeHTML(title);
-    var sanitizedDescription = sanitizeHTML(description, {
-      allowedTags:['h1']
-    });
-    var html = template.HTML(title, list, `<h2>${sanitizedTitle}</h2>
-    <p>${sanitizedDescription}</p>`,
-    `
-    <a href= "/create">Create</a> 
-    <a href = "/update/${sanitizedTitle}">Update</a>    
-    <form action="/delete_process" method="post">
-      <input type="hidden" name="id" value="${sanitizedTitle}">
-      <input type="submit" value="delete">
-    </form>`);
-    // QueryString을 사용하는 것은 Get 방식
-    /* 삭제 버튼을 Link로 구현하는 것은 대단히 잘못된일(소스를 조작할 수 있기 때문)
-    <a href = "/delete?id=${title}">Delete</a> 
-    */
-    response.send(html);
+    if(err){
+      next(err);
+      // next('route'); 는 정상처리임
+    }
+    else {
+      var title = request.params.pageId;
+      var sanitizedTitle = sanitizeHTML(title);
+      var sanitizedDescription = sanitizeHTML(description, {
+        allowedTags:['h1']
+      });
+      var html = template.HTML(title, list, `<h2>${sanitizedTitle}</h2>
+      <p>${sanitizedDescription}</p>`,
+      `
+      <a href= "/create">Create</a> 
+      <a href = "/update/${sanitizedTitle}">Update</a>    
+      <form action="/delete_process" method="post">
+        <input type="hidden" name="id" value="${sanitizedTitle}">
+        <input type="submit" value="delete">
+      </form>`);
+      // QueryString을 사용하는 것은 Get 방식
+      /* 삭제 버튼을 Link로 구현하는 것은 대단히 잘못된일(소스를 조작할 수 있기 때문)
+      <a href = "/delete?id=${title}">Delete</a> 
+      */
+      response.send(html);
+    }
+  
   });
 });
 
@@ -164,4 +175,13 @@ app.post('/delete_process', function(request,response){
   });
 });
 
-app.listen(3000, () => console.log('Example app listening of port 3000'));
+app.use(function(req, res, next){
+  res.status(404).send('Sorry Can not find that!');
+});
+
+app.use(function(err, req, res, next){  
+  res.status(500).send('Something broke!');
+});
+
+app.listen(3000, 
+  () => console.log('Example app listening of port 3000'));
