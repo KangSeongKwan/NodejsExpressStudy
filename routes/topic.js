@@ -8,6 +8,11 @@ var auth = require('../lib/auth.js');
 
 // 여기서 순서가 중요해지게됨. /topic 아래에서는 우선순위가 create가 먼저 실행되는 부분
   router.get('/create', function(request, response){
+    // 로그인된 상태가 아니라면 데이터를 생성/수정/삭제가 불가능 하도록
+    if(!auth.IsOwner(request, response)){
+      response.redirect('/');
+      return false;
+    }
     var title = 'WEB - create';
     var list = template.list(request.list);
     var html = template.HTML(title, list, `
@@ -25,6 +30,10 @@ var auth = require('../lib/auth.js');
   });
   
   router.post('/create_process', function(request, response){
+    if(!auth.IsOwner(request, response)){
+      response.redirect('/');
+      return false;
+    }
     var post = request.body;
     var title = post.title;
     var description = post.description;
@@ -54,6 +63,10 @@ var auth = require('../lib/auth.js');
   });
   
   router.get('/update/:pageId', function(request, response){
+    if(!auth.IsOwner(request, response)){
+      response.redirect('/');
+      return false;
+    }
     var filterId = path.parse(request.params.pageId).base;
     fs.readFile(`./data/${filterId}`, 'utf-8', function(err, description){
       var title = request.params.pageId;
@@ -80,6 +93,10 @@ var auth = require('../lib/auth.js');
   });
   
   router.post('/update_process', function(request, response){
+    if(!auth.IsOwner(request, response)){
+      response.redirect('/');
+      return false;
+    }
     var post = request.body;
     var id = post.id;
     var filterId = path.parse(id).base;
@@ -93,6 +110,10 @@ var auth = require('../lib/auth.js');
   });
   
   router.post('/delete_process', function(request,response){
+    if(!auth.IsOwner(request, response)){
+      response.redirect('/');
+      return false;
+    }
     var post = request.body;
     var id = post.id;
     var filterId = path.parse(id).base;

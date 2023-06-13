@@ -16,6 +16,9 @@ app.use(helmet());
 var session = require('express-session')
 // 세션 데이터를 세션 파일에 저장하기 위한 모듈
 var FileStore = require('session-file-store')(session)
+// passport는 내부적으로 발생되는 session을 사용하기 때문에 반드시 세션 생성 코드 아래에 passport 동작을 명시해야 한다.
+// 모듈 import는 여기에 해도 상관이 없음
+var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 
 
 // 정적인 파일을 서비스하고자 할 때 static 미들웨어 사용
@@ -28,6 +31,8 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use(compression());
 
 app.use(session({
+  // secure: true 값 부여하면 hhtps에서만 세션을 주고받을 수 있도록 할 수 있음
+  // HttpOnly: true 값 부여하면 자바스크립트를 통해 세션 쿠키를 사용할 수 없도록 강제할 수 있음
   secret: 'adfaffafsdfasfs',
   // 세션 데이터 값이 바뀌건 바뀌지 않건 계속 세션 데이터 저장소에 값을 저장하는 옵션이므로 false 권장
   resave: false,
@@ -36,6 +41,12 @@ app.use(session({
   // 세션파일 저장소를 생성하는 코드
   store:new FileStore()
 }))
+
+// 기본 인증은 passport.authenticate('위치 및 전략'(function 생략 가능){성공 시 동작, 실패 시 동작})을 정의하는 것이 기초 형태
+app.post('/auth/login_process', passport.authenticate('local', {
+  successRedirect: '/',
+  failureRedirect: '/auth/login'
+}));
 
 // readdir 호출을 미들웨어화
 app.get('*', function(request, response, next){
