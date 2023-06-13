@@ -4,22 +4,23 @@ var path = require('path');
 var fs = require('fs');
 var sanitizeHTML = require('sanitize-html');
 var template = require('../lib/template.js');
+var auth = require('../lib/auth.js');
 
 // 여기서 순서가 중요해지게됨. /topic 아래에서는 우선순위가 create가 먼저 실행되는 부분
-router.get('/create', function(request, response){
+  router.get('/create', function(request, response){
     var title = 'WEB - create';
     var list = template.list(request.list);
     var html = template.HTML(title, list, `
       <form action="/topic/create_process" method="post">
-      <p><input type="text" name="title" placeholder="title"></p>
-      <p>
-          <textarea name="description" placeholder="description"></textarea>
-      </p>
-      <p>
-          <input type="submit">
-      </p>
+        <p><input type="text" name="title" placeholder="title"></p>
+        <p>
+            <textarea name="description" placeholder="description"></textarea>
+        </p>
+        <p>
+            <input type="submit">
+        </p>
       </form>
-    `);
+    `, '', auth.StatusUI(request, response));
     response.send(html);
   });
   
@@ -73,7 +74,7 @@ router.get('/create', function(request, response){
       `,
       `
       <a href="/topic/create">Create</a> 
-      <a href = "/topic/update/${title}">Update</a>`);
+      <a href = "/topic/update/${title}">Update</a>`, auth.StatusUI(request, response));
       response.send(html);
     });
   });
@@ -128,7 +129,7 @@ router.get('/create', function(request, response){
         <form action="/topic/delete_process" method="post">
           <input type="hidden" name="id" value="${sanitizedTitle}">
           <input type="submit" value="delete">
-        </form>`);
+        </form>`, auth.StatusUI(request, response));
         // QueryString을 사용하는 것은 Get 방식
         /* 삭제 버튼을 Link로 구현하는 것은 대단히 잘못된일(소스를 조작할 수 있기 때문)
         <a href = "/delete?id=${title}">Delete</a> 
