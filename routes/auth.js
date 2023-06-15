@@ -5,17 +5,18 @@ var fs = require('fs');
 var sanitizeHTML = require('sanitize-html');
 var template = require('../lib/template.js');
 
-var authData = {
-  email:'kang2222@gmail.com',
-  passowrd:'111111',
-  nickname:'kangsk'
-}
-
 // 여기서 순서가 중요해지게됨.
 router.get('/login', function(request, response){
+  var fmsg = request.flash();
+  var feedback = '';
+  if(fmsg.error){
+    feedback = fmsg.error[0];
+  }
+  console.log(fmsg);
   var title = 'WEB - login';
   var list = template.list(request.list);
   var html = template.HTML(title, list, `
+    <div style="color:red;">${feedback}</div>
     <form action="/auth/login_process" method="post">
     <p><input type="text" name="email" placeholder="email"></p>
     <p>
@@ -28,6 +29,9 @@ router.get('/login', function(request, response){
   response.send(html);
 });
 
+
+
+/* 기존의 세션활용한 인증 방식
 router.post('/login_process', function(request, response){
   var post = request.body;
   var email = post.email;
@@ -45,11 +49,24 @@ router.post('/login_process', function(request, response){
     response.send('Who?');
   }
 });
+*/
 
-router.get('/logout', function(request, response){
+router.get('/logout', (request, response) => {
+  /*
+    passport.js 버전 때문인지 request.logout() 안에 콜백함수 정의해야함
+  */
+  request.logout(() => {
+    request.session.save(function(err){
+      if(err) { throw err; }
+      response.redirect('/');
+    });
+  });
+  
+  /* 기존의 세션방식
   request.session.destroy(function(err){
     response.redirect('/');
   });
+  */
 });
 
 

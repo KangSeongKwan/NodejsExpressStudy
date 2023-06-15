@@ -11,11 +11,21 @@ var template = require('../lib/template.js');
 var auth = require('../lib/auth.js');
 
 router.get('/', function(request, response) {
-    console.log(request.session)
+    console.log('/', request.user);
+    /* Passport 0.6부터는 지원을 안하는 코드인 것으로 보임
+    var fmsgsuc = request.flash();
+    var feedback = '';
+    if(fmsgsuc.success){
+      feedback = fmsgsuc.success[0];
+    }
+    console.log(feedback);
+    <div style="color:blue;">${feedback}</div>
+    */
     var title = 'Welcome';
     var description = 'Hello, Node.js';
     var list = template.list(request.list);
-    var html = template.HTML(title, list, `<h2>${title}</h2>
+    var html = template.HTML(title, list, `
+    <h2>${title}</h2>
     <p>${description}</p>
     <img src="/images/hello.jpg" style="width:300px; display:block margin-top:10px;">
     `, `
