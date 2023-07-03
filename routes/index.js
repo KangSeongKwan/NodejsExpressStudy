@@ -11,7 +11,6 @@ var template = require('../lib/template.js');
 var auth = require('../lib/auth.js');
 
 router.get('/', function(request, response) {
-    console.log('/', request.user);
     /* Passport 0.6부터는 지원을 안하는 코드인 것으로 보임
     var fmsgsuc = request.flash();
     var feedback = '';
