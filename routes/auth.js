@@ -7,12 +7,7 @@ var sanitizeHTML = require('sanitize-html');
 var template = require('../lib/template.js');
 // ID식별자 사용하기위한 미들웨어
 var shortid = require('shortid');
-
-const low = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
-const adapter = new FileSync('db.json');
-const db = low(adapter);
-db.defaults({users:[]}).write();
+var db = require('../lib/db.js');
 
 // router exports를 맨 마지막에 하던 것을 function형태로 리팩토링
 module.exports = function(passport){
@@ -84,7 +79,7 @@ module.exports = function(passport){
       <p><input type="text" name="email" placeholder="email" value="kang2772@gmail.com"></p>
       <p><input type="password" name="pwd" placeholder="password" value="111111"></p>
       <p><input type="password" name="pwd2" placeholder="password" value="111111"></p>
-      <p><input type="text" name="displayNane" placeholder="display name" value="kang"></p>
+      <p><input type="text" name="displayName" placeholder="display name" value="kang"></p>
       <p>
           <input type="submit" value="register">
       </p>
@@ -98,19 +93,23 @@ module.exports = function(passport){
     var email = post.email;
     var pwd = post.pwd;
     var pwd2 = post.pwd2;
-    var displayNane = post.displayNane;
+    var displayName = post.displayName;
     if(pwd !== pwd2) {
       request.flash('error', 'Password Must Same!');
       response.redirect('/auth/register');
     } else {
-      db.get('users').push({
+      var user = {
         id:shortid.generate(),
         email:email,
         password:pwd,
-        displayNane:displayNane
-      }).write();
-
-      response.redirect('/');
+        displayName:displayName
+      };
+      // db.get의 push에 id, email 등을 담는 것이 아닌 user 변수를 활용
+      db.get('users').push(user).write();
+      //Passport.js의 login모듈을 사용
+      request.login(user, function(err){
+        response.redirect('/');
+      });
     }
   });
 
